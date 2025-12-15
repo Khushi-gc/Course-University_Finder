@@ -6,34 +6,43 @@ import { COUNTRIES } from './countries';
 import { Courses } from './pages/Courses';
 import { Universities } from './pages/Universities';
 
+
 function Header({
   isScrolled,
   isMenuOpen,
   setIsMenuOpen,
   locationSearch,
   setLocationSearch,
-  showCountryList,
-  setShowCountryList,
   filteredCountries,
-  handleCountrySelect,
-  locationWrapperRef
 }) {
   const location = useLocation();
   const [showPageMenu, setShowPageMenu] = useState(false);
   const pageMenuRef = useRef(null);
 
+  // Desktop Location Dropdown State
+  const [showDesktopList, setShowDesktopList] = useState(false);
+  const desktopLocationRef = useRef(null);
+
   const currentPageTitle = location.pathname === '/universities' ? 'Universities' : 'Courses';
 
-  // Close page menu when clicking outside
+  // Close menus when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (pageMenuRef.current && !pageMenuRef.current.contains(event.target)) {
         setShowPageMenu(false);
       }
+      if (desktopLocationRef.current && !desktopLocationRef.current.contains(event.target)) {
+        setShowDesktopList(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleDesktopSelect = (name) => {
+    setLocationSearch(name);
+    setShowDesktopList(false);
+  };
 
   return (
     <header className={`app-header ${isScrolled ? 'glass-header' : ''}`}>
@@ -63,7 +72,7 @@ function Header({
 
         <div className="header-right">
           {/* Location Input */}
-          <div className="location-wrapper-desktop" ref={locationWrapperRef}>
+          <div className="location-wrapper-desktop" ref={desktopLocationRef}>
             <div className="location-search-container">
               <svg xmlns="http://www.w3.org/2000/svg" className="location-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -76,16 +85,16 @@ function Header({
                 placeholder=" "
                 value={locationSearch}
                 onChange={(e) => setLocationSearch(e.target.value)}
-                onFocus={() => setShowCountryList(true)}
+                onFocus={() => setShowDesktopList(true)}
               />
               <label className="location-label">Current Location</label>
 
-              <div className={`country-dropdown ${showCountryList ? 'open' : ''}`}>
+              <div className={`country-dropdown ${showDesktopList ? 'open' : ''}`}>
                 {filteredCountries.map((country) => (
                   <div
                     key={country.code}
                     className="country-item"
-                    onClick={() => handleCountrySelect(country.name)}
+                    onClick={() => handleDesktopSelect(country.name)}
                   >
                     <div className="country-info">
                       <img
@@ -155,32 +164,12 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Header Location State
+  // Header Location State (Global)
   const [locationSearch, setLocationSearch] = useState("");
-  const [showCountryList, setShowCountryList] = useState(false);
-  const locationWrapperRef = useRef(null);
 
   const filteredCountries = COUNTRIES.filter(country =>
     country.name.toLowerCase().includes(locationSearch.toLowerCase())
   );
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (locationWrapperRef.current && !locationWrapperRef.current.contains(event.target)) {
-        setShowCountryList(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [locationWrapperRef]);
-
-  const handleCountrySelect = (countryName) => {
-    setLocationSearch(countryName);
-    setShowCountryList(false);
-  };
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -200,11 +189,7 @@ function App() {
           setIsMenuOpen={setIsMenuOpen}
           locationSearch={locationSearch}
           setLocationSearch={setLocationSearch}
-          showCountryList={showCountryList}
-          setShowCountryList={setShowCountryList}
           filteredCountries={filteredCountries}
-          handleCountrySelect={handleCountrySelect}
-          locationWrapperRef={locationWrapperRef}
         />
 
         <Routes>
@@ -212,14 +197,14 @@ function App() {
             <Courses
               isMenuOpen={isMenuOpen}
               setIsMenuOpen={setIsMenuOpen}
-              locationProps={{ locationSearch, setLocationSearch, filteredCountries, handleCountrySelect, showCountryList, setShowCountryList }}
+              locationProps={{ locationSearch, setLocationSearch, filteredCountries }}
             />
           } />
           <Route path="/universities" element={
             <Universities
               isMenuOpen={isMenuOpen}
               setIsMenuOpen={setIsMenuOpen}
-              locationProps={{ locationSearch, setLocationSearch, filteredCountries, handleCountrySelect, showCountryList, setShowCountryList }}
+              locationProps={{ locationSearch, setLocationSearch, filteredCountries }}
             />
           } />
         </Routes>

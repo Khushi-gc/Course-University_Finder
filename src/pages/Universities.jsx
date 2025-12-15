@@ -5,8 +5,7 @@ import { COUNTRIES } from '../countries';
 export function Universities({ isMenuOpen, setIsMenuOpen, locationProps }) {
     const {
         locationSearch, setLocationSearch,
-        filteredCountries, handleCountrySelect,
-        showCountryList, setShowCountryList
+        filteredCountries
     } = locationProps || {};
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +20,10 @@ export function Universities({ isMenuOpen, setIsMenuOpen, locationProps }) {
     const sortRef = useRef(null);
     const destRef = useRef(null);
     const scrollRef = useRef(null);
+
+    // Mobile Location State
+    const [showMobileLocationList, setShowMobileLocationList] = useState(false);
+    const mobileLocationRef = useRef(null);
 
     const scroll = (direction) => {
         if (scrollRef.current) {
@@ -62,12 +65,20 @@ export function Universities({ isMenuOpen, setIsMenuOpen, locationProps }) {
             if (destRef.current && !destRef.current.contains(event.target)) {
                 setShowDestDropdown(false);
             }
+            if (mobileLocationRef.current && !mobileLocationRef.current.contains(event.target)) {
+                setShowMobileLocationList(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [sortRef, destRef]);
+    }, [sortRef, destRef, mobileLocationRef]);
+
+    const handleMobileLocationSelect = (name) => {
+        setLocationSearch(name);
+        setShowMobileLocationList(false);
+    };
 
     const filteredUnis = UNIVERSITIES_DATA.filter(uni =>
         (uni.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -107,7 +118,7 @@ export function Universities({ isMenuOpen, setIsMenuOpen, locationProps }) {
 
             <aside className={`filters-sidebar ${isMenuOpen ? 'mobile-open' : ''}`}>
                 {/* Mobile Location Input */}
-                <div className="sidebar-location-wrapper lg:hidden">
+                <div className="sidebar-location-wrapper lg:hidden" ref={mobileLocationRef}>
                     <div className="location-search-container">
                         <svg xmlns="http://www.w3.org/2000/svg" className="location-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -119,17 +130,17 @@ export function Universities({ isMenuOpen, setIsMenuOpen, locationProps }) {
                             className="location-input"
                             value={locationSearch}
                             onChange={(e) => setLocationSearch(e.target.value)}
-                            onFocus={() => setShowCountryList(true)}
+                            onFocus={() => setShowMobileLocationList(true)}
                             placeholder=" "
                         />
                         <label className="location-label">Current Location</label>
 
-                        <div className={`country-dropdown ${showCountryList ? 'open' : ''}`}>
+                        <div className={`country-dropdown ${showMobileLocationList ? 'open' : ''}`}>
                             {filteredCountries && filteredCountries.map((country) => (
                                 <div
                                     key={country.code}
                                     className="country-item"
-                                    onClick={() => handleCountrySelect(country.name)}
+                                    onClick={() => handleMobileLocationSelect(country.name)}
                                 >
                                     <div className="country-info">
                                         <img
